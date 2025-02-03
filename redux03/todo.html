@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.2.1/redux.min.js"></script>
+
+        <h3>오늘 할 일</h3>
+        <ul id="todo-list"></ul>
+
+        <div>
+            <input type="text" id="input-text" placeholder="할 일을 입력하세요" />
+            <button id="add-button">할 일 추가</button>
+            <button id="remove-button">할 일 삭제</button>
+            <button id="remove-all-button">모두 삭제</button>
+            <button id="loggin-state">state</button>
+        </div>
+
+        <script>
+            var ACTION_TYPE_ADD_TODO = "ADD_TODO";
+            var ACTION_TYPE_REMOVE_TODO = "REMOVE_TODO";
+            var ACTION_TYPE_REMOVE_ALL = "REMOVE_ALL";
+            // 1. 리듀서 (기본 상태를 빈 배열로 설정)
+            function todoReducer(state = [], action) {
+                switch (action.type) {
+                    case ACTION_TYPE_ADD_TODO:
+                        return state.concat(action.text);
+                    case ACTION_TYPE_REMOVE_TODO:
+                        return state.slice(0, -1);
+                    case ACTION_TYPE_REMOVE_ALL:
+                        return [];
+                    default:
+                        return state;
+                }
+            }
+
+            // 2. 미들웨어 추가 (loggerMiddleware)
+            function loggerMiddleware({ getState }) {
+                return (next) => (action) => {
+                    console.log("dispatch 예정 action:", action);
+
+                    const returnValue = next(action);
+
+                    console.log("dispatch 이후 state:", getState()); // getState() 호출로 수정
+                    return returnValue;
+                };
+            }
+
+            // 3. Redux 스토어 생성
+            var store = Redux.createStore(todoReducer, ["처음 만난 리덕스"], Redux.applyMiddleware(loggerMiddleware));
+
+            // 4. DOM 요소 가져오기
+            var todoListElem = document.getElementById("todo-list");
+            var inputElem = document.getElementById("input-text");
+            var addButtonElem = document.getElementById("add-button");
+            var logStateButtonElem = document.getElementById("loggin-state"); // 버튼 ID 수정
+
+            // 5. UI 업데이트 (스토어 상태 반영)
+            function render() {
+                todoListElem.innerHTML = "";
+
+                store.getState().forEach((todo) => {
+                    const todoListItemElem = document.createElement("li");
+                    todoListItemElem.textContent = todo;
+                    todoListElem.appendChild(todoListItemElem);
+                });
+            }
+
+            render();
+            store.subscribe(render);
+
+            // 6. 할 일을 추가하는 함수
+            function addTodo() {
+                var newTodo = inputElem.value.trim();
+                if (newTodo) {
+                    store.dispatch({ type: ACTION_TYPE_ADD_TODO, text: newTodo });
+                    inputElem.value = "";
+                }
+            }
+
+            function addTodoAtionCreator(text) {
+                return {
+                    type: ACTION_TYPE_ADD_TODO,
+                    text: text,
+                };
+            }
+
+            function removeTodoActionCreator() {
+                return {
+                    type: ACTION_TYPE_REMOVE_TODO,
+                };
+            }
+
+            function removeAllActionCreator() {
+                return {
+                    type: ACTION_TYPE_REMOVE_ALL,
+                };
+            }
+
+            document.getElementById("remove-button").addEventListener("click", function () {
+                store.dispatch(removeTodoActionCreator());
+            });
+
+            document.getElementById("remove-all-button").addEventListener("click", function () {
+                store.dispatch(removeAllActionCreator());
+            });
+
+            // 7. 버튼 클릭 시 추가
+            addButtonElem.addEventListener("click", function () {
+                store.dispatch(addTodoAtionCreator(inputElem.value));
+                inputElem.value = "";
+            });
+
+            // 8. 현재 Redux 상태 확인 버튼 (콘솔에 출력)
+            logStateButtonElem.addEventListener("click", function () {
+                console.log("현재 state:", store.getState());
+            });
+        </script>
+    </body>
+</html>
