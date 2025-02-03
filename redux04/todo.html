@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.2.1/redux.min.js"></script>
+
+        <h3>오늘 할 일</h3>
+        <ul id="todo-list"></ul>
+
+        <div>
+            <input type="text" id="input-text" placeholder="할 일을 입력하세요" />
+            <button id="add-button">할 일 추가</button>
+            <button id="remove-button">할 일 삭제</button>
+            <button id="remove-all-button">모두 삭제</button>
+            <button id="loggin-state">state</button>
+        </div>
+
+        <h3>메모</h3>
+        <ul id="memo-list"></ul>
+        <div>
+            <input type="text" id="input-memo-text" placeholder="메모 입력" />
+            <button id="add-memo-button">메모 추가</button>
+            <button id="remove-memo-button">메모 삭제</button>
+        </div>
+
+        <script>
+            //  TODO ACTION TYPES
+            var ACTION_TYPE_ADD_TODO = "ADD_TODO";
+            var ACTION_TYPE_REMOVE_TODO = "REMOVE_TODO";
+            var ACTION_TYPE_REMOVE_ALL = "REMOVE_ALL";
+
+            //  MEMO ACTION TYPES
+            var ACTION_TYPE_ADD_MEMO = "ADD_MEMO";
+            var ACTION_TYPE_REMOVE_MEMO = "REMOVE_MEMO";
+
+            //  1. 리듀서 (기본 상태를 빈 배열로 설정)
+            function todoReducer(state = [], action) {
+                switch (action.type) {
+                    case ACTION_TYPE_ADD_TODO:
+                        return state.concat(action.text);
+                    case ACTION_TYPE_REMOVE_TODO:
+                        return state.slice(0, -1);
+                    case ACTION_TYPE_REMOVE_ALL:
+                        return [];
+                    default:
+                        return state;
+                }
+            }
+
+            function memoReducer(state = [], action) {
+                switch (action.type) {
+                    case ACTION_TYPE_ADD_MEMO:
+                        return state.concat(action.text);
+                    case ACTION_TYPE_REMOVE_MEMO:
+                        return state.slice(0, -1);
+                    default:
+                        return state;
+                }
+            }
+
+            //  2. 미들웨어 추가 (loggerMiddleware)
+            function loggerMiddleware({ getState }) {
+                return (next) => (action) => {
+                    console.log(" dispatch 예정 action:", action);
+                    const returnValue = next(action);
+                    console.log(" dispatch 이후 state:", getState());
+                    return returnValue;
+                };
+            }
+
+            //  3. reducer 합치기 (combineReducers 사용)
+            var rootReducer = Redux.combineReducers({
+                todo: todoReducer,
+                memo: memoReducer,
+            });
+
+            //  4. Redux 스토어 생성
+            var store = Redux.createStore(rootReducer, Redux.applyMiddleware(loggerMiddleware));
+
+            //  5. DOM 요소 가져오기 todo
+            var todoListElem = document.getElementById("todo-list");
+            var inputElem = document.getElementById("input-text");
+            var addButtonElem = document.getElementById("add-button");
+            var removeButtonElem = document.getElementById("remove-button");
+            var removeAllButtonElem = document.getElementById("remove-all-button");
+            var logStateButtonElem = document.getElementById("loggin-state");
+            // memo
+            var memoListElem = document.getElementById("memo-list");
+            var inputMemoElem = document.getElementById("input-memo-text");
+            var addMemoButtonElem = document.getElementById("add-memo-button");
+            var removeMemoButtonElem = document.getElementById("remove-memo-button");
+
+            //  6. UI 업데이트 (스토어 상태 반영)
+            function render() {
+                todoListElem.innerHTML = "";
+                memoListElem.innerHTML = "";
+
+                // todo
+                store.getState().todo.forEach((todo) => {
+                    const todoListItemElem = document.createElement("li");
+                    todoListItemElem.textContent = todo;
+                    todoListElem.appendChild(todoListItemElem);
+                });
+
+                // memo
+                store.getState().memo.forEach((memo) => {
+                    const memoListItemElem = document.createElement("li");
+                    memoListItemElem.textContent = memo;
+                    memoListElem.appendChild(memoListItemElem);
+                });
+            }
+
+            render();
+            store.subscribe(render);
+
+            //  7. Action Creator
+            // todo
+            function addTodoActionCreator(text) {
+                return {
+                    type: ACTION_TYPE_ADD_TODO,
+                    text: text,
+                };
+            }
+
+            function removeTodoActionCreator() {
+                return { type: ACTION_TYPE_REMOVE_TODO };
+            }
+
+            function removeAllActionCreator() {
+                return { type: ACTION_TYPE_REMOVE_ALL };
+            }
+
+            // memo
+            function addMemoActionCreator(text) {
+                return {
+                    type: ACTION_TYPE_ADD_MEMO,
+                    text,
+                };
+            }
+
+            function removeMemoActionCreator() {
+                return { type: ACTION_TYPE_REMOVE_MEMO };
+            }
+
+            //  8. 이벤트 리스너 추가
+            addButtonElem.addEventListener("click", function () {
+                if (inputElem.value.trim() !== "") {
+                    store.dispatch(addTodoActionCreator(inputElem.value.trim()));
+                    inputElem.value = "";
+                }
+            });
+
+            removeButtonElem.addEventListener("click", function () {
+                store.dispatch(removeTodoActionCreator());
+            });
+
+            removeAllButtonElem.addEventListener("click", function () {
+                store.dispatch(removeAllActionCreator());
+            });
+            // memo
+            addMemoButtonElem.addEventListener("click", function () {
+                if (inputMemoElem.value.trim() !== "") {
+                    store.dispatch(addMemoActionCreator(inputMemoElem.value.trim()));
+                    inputMemoElem.value = "";
+                }
+            });
+
+            removeMemoButtonElem.addEventListener("click", function () {
+                store.dispatch(removeMemoActionCreator());
+            });
+
+            //  9. 현재 Redux 상태 확인 버튼 (콘솔 출력)
+            logStateButtonElem.addEventListener("click", function () {
+                console.log(" 현재 state:", store.getState());
+            });
+        </script>
+    </body>
+</html>
