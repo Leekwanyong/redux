@@ -7,6 +7,7 @@ import {
     removeAll as removeTodoActionCreator,
 } from "../actions/todoAction";
 import TodoApp from "../../components/TodoApp";
+import addTodoThunkActionCreator from "../thunks/addTodoThunk";
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -17,7 +18,8 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
     return {
         addTodo: (text) => {
-            dispatch(addTodoActionCreator(text));
+            // dispatch(addTodoActionCreator(text));
+            dispatch(addTodoThunkActionCreator(text));
         },
         removeTodo: () => {
             dispatch(removeTodoActionCreator());
