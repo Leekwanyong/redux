@@ -4,6 +4,7 @@ const initialState = {
     pending: false,
     data: [],
     error: null,
+    extraDate: null,
 };
 
 export const { fetchTodosRequested, fetchTodosSucceeded, fetchTodosFailed } = createActions({
