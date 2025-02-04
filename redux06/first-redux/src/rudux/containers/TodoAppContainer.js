@@ -1,6 +1,11 @@
 import { connect } from "react-redux";
 // import { addTodoActionCreator, removeAllActionCreator, removeTodoActionCreator } from "../actions";
-import { addTodoActionCreator, removeAllActionCreator, removeTodoActionCreator } from "../ducks/todoDuck";
+// import { addTodoActionCreator, removeAllActionCreator, removeTodoActionCreator } from "../ducks/todoDuck";
+import {
+    addTodo as addTodoActionCreator,
+    removeTodo as removeAllActionCreator,
+    removeAll as removeTodoActionCreator,
+} from "../actions/todoAction";
 import TodoApp from "../../components/TodoApp";
 
 function mapStateToProps(state, ownProps) {
