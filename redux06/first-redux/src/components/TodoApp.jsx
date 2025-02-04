@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 export default function TodoApp(props) {
-    const { todoItems, addTodo, removeTodo, removeAll, triggerAsyncFunction } = props;
+    const { todoItems, addTodo, removeTodo, removeAll, triggerAsyncFunction, fetchTodo } = props;
     const [newTodo, setNewTodo] = useState("");
     return (
         <div>
@@ -37,6 +37,7 @@ export default function TodoApp(props) {
             >
                 비동기 함수 테스트
             </button>
+            <button onClick={fetchTodo}>서버에서 할 일 목록 받아오기</button>
         </div>
     );
 }
